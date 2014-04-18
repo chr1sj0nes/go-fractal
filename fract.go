@@ -3,6 +3,7 @@ package fract
 
 import (
 	"image"
+	"image/color"
 	"math/cmplx"
 )
 
@@ -46,4 +47,17 @@ func Mandelbrot(img Image, min, max complex128) {
 	for i := 0; i < b.Dx()*b.Dy(); i++ {
 		<-ch
 	}
+}
+
+type ColorImage struct {
+	rgb image.RGBA
+}
+
+func (img *ColorImage) SetPixel(x, y, iterations int) {
+	color := color.RGBA{128, 0, 0, 0}
+	img.rgb.Set(x, y, color)
+}
+
+func (img *ColorImage) Bounds() image.Rectangle {
+	return img.rgb.Bounds()
 }
