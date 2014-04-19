@@ -20,11 +20,11 @@ func Mandelbrot(img draw.Image, col Colorize, min, max complex128) {
 	dr := real(max-min) / float64(b.Dx())
 	di := imag(max-min) / float64(b.Dy())
 
-	ch := make(chan bool, b.Dx())
+	ch := make(chan bool, b.Dy())
 
-	for x := 0; x < b.Dx(); x++ {
-		go func(x int) {
-			for y := 0; y < b.Dy(); y++ {
+	for y := 0; y < b.Dy(); y++ {
+		go func(y int) {
+			for x := 0; x < b.Dx(); x++ {
 				z := complex(0, 0)
 				c := min + complex(float64(x)*dr, float64(y)*di)
 
@@ -40,11 +40,11 @@ func Mandelbrot(img draw.Image, col Colorize, min, max complex128) {
 			}
 
 			ch <- true
-		}(x)
+		}(y)
 	}
 
 	// wait for all go routines to finish
-	for i := 0; i < b.Dx(); i++ {
+	for i := 0; i < b.Dy(); i++ {
 		<-ch
 	}
 }
@@ -63,8 +63,8 @@ func CountBlack(img image.Image) uint {
 	r0, g0, b0, a0 := color.Black.RGBA()
 
 	count := uint(0)
-	for x := b.Min.X; x < b.Max.X; x++ {
-		for y := b.Min.Y; y < b.Max.Y; y++ {
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
 			r, g, b, a := img.At(x, y).RGBA()
 
 			if (r == r0) && (g == g0) && (b == b0) && (a == a0) {
