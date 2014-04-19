@@ -51,26 +51,26 @@ func Mandelbrot(img draw.Image, col Colorize, min, max complex128) {
 func ColorBinary(iterations int) color.Color {
 	if iterations == MaxIterations {
 		return color.Black
-	} else {
-		return color.White
 	}
+
+	return color.White
 }
 
 func CountBlack(img image.Image) uint {
 	b := img.Bounds()
-	
+
 	r0, g0, b0, a0 := color.Black.RGBA()
 
 	count := uint(0)
 	for x := b.Min.X; x < b.Max.X; x++ {
 		for y := b.Min.Y; y < b.Max.Y; y++ {
 			r, g, b, a := img.At(x, y).RGBA()
-			
+
 			if (r == r0) && (g == g0) && (b == b0) && (a == a0) {
 				count++
 			}
 		}
 	}
-	
+
 	return count
 }
