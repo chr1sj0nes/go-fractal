@@ -4,19 +4,17 @@ package fract
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math/cmplx"
 )
 
 const MaxIterations = 10000
 
-// Fractal image receiver
-type Image interface {
-	SetPixel(x, y, iterations int)
-	Bounds() image.Rectangle
-}
+// Color the image using iterations to diverge
+type Colorize func(iterations int) color.Color
 
 // Generate Mandelbrot set
-func Mandelbrot(img Image, min, max complex128) {
+func Mandelbrot(img draw.Image, col Colorize, min, max complex128) {
 	b := img.Bounds()
 	dr := real(max-min) / float64(b.Dx())
 	di := imag(max-min) / float64(b.Dy())
@@ -37,7 +35,7 @@ func Mandelbrot(img Image, min, max complex128) {
 					}
 				}
 
-				img.SetPixel(x+b.Min.X, y+b.Min.Y, n)
+				img.Set(x+b.Min.X, y+b.Min.Y, col(n))
 			}
 
 			ch <- true
@@ -50,40 +48,29 @@ func Mandelbrot(img Image, min, max complex128) {
 	}
 }
 
-type ColorImage struct {
-	image.RGBA
+func ColorBinary(iterations int) color.Color {
+	if iterations == MaxIterations {
+		return color.Black
+	} else {
+		return color.White
+	}
 }
 
-func (img *ColorImage) SetPixel(x, y, iterations int) {
-	color := color.RGBA{128, 0, 0, 0} // TODO
-	img.Set(x, y, color)
-}
+func CountBlack(img image.Image) uint {
+	b := img.Bounds()
+	
+	r0, g0, b0, a0 := color.Black.RGBA()
 
-type BinaryImage struct {
-	Pix  []bool
-	Rect image.Rectangle
-}
-
-func NewBinaryImage(r image.Rectangle) *BinaryImage {
-	return &BinaryImage{make([]bool, r.Dx()*r.Dy()), r}
-}
-
-func (img *BinaryImage) SetPixel(x, y, iterations int) {
-	n := x - img.Bounds().Min.X + (y-img.Bounds().Min.Y)*img.Bounds().Dx()
-	img.Pix[n] = (iterations == MaxIterations)
-}
-
-func (img BinaryImage) Bounds() image.Rectangle {
-	return img.Rect
-}
-
-func (img BinaryImage) Count() uint {
 	count := uint(0)
-	for _, pix := range img.Pix {
-		if pix {
-			count++
+	for x := b.Min.X; x < b.Max.X; x++ {
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			r, g, b, a := img.At(x, y).RGBA()
+			
+			if (r == r0) && (g == g0) && (b == b0) && (a == a0) {
+				count++
+			}
 		}
 	}
-
+	
 	return count
 }
