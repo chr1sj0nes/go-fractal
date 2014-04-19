@@ -15,32 +15,19 @@ type Image interface {
 	Bounds() image.Rectangle
 }
 
-// Bounds in the complex plane
-type Bounds struct {
-	Min, Max complex128
-}
-
-func (b Bounds) dz() complex128 {
-	return b.Max - b.Min
-}
-
-func (b Bounds) Area() float64 {
-	return real(b.dz()) * imag(b.dz())
-}
-
 // Generate Mandelbrot set
-func Mandelbrot(img Image, bounds Bounds) {
+func Mandelbrot(img Image, min, max complex128) {
 	b := img.Bounds()
-	dr := real(bounds.dz()) / float64(b.Dx())
-	di := imag(bounds.dz()) / float64(b.Dy())
+	dr := real(max-min) / float64(b.Dx())
+	di := imag(max-min) / float64(b.Dy())
 
-//	ch := make(chan bool, b.Dx()*b.Dy())
+	ch := make(chan bool, b.Dx())
 
 	for x := 0; x < b.Dx(); x++ {
-		for y := 0; y < b.Dy(); y++ {
-//			go func() {
+		go func(x int) {
+			for y := 0; y < b.Dy(); y++ {
 				z := complex(0, 0)
-				c := bounds.Min + complex(float64(x)*dr, float64(y)*di)
+				c := min + complex(float64(x)*dr, float64(y)*di)
 
 				n := 0
 				for ; n < MaxIterations; n++ {
@@ -51,15 +38,16 @@ func Mandelbrot(img Image, bounds Bounds) {
 				}
 
 				img.SetPixel(x+b.Min.X, y+b.Min.Y, n)
-//				ch <- true
-//			}()
-		}
+			}
+
+			ch <- true
+		}(x)
 	}
 
-//	// wait for all go routines to finish
-//	for i := 0; i < b.Dx()*b.Dy(); i++ {
-//		<-ch
-//	}
+	// wait for all go routines to finish
+	for i := 0; i < b.Dx(); i++ {
+		<-ch
+	}
 }
 
 type ColorImage struct {
