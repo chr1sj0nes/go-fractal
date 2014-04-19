@@ -8,6 +8,7 @@ import (
 	"math/cmplx"
 )
 
+// Iterations at which we are "converged"
 const MaxIterations = 10000
 
 // Color the image using iterations to diverge
