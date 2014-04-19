@@ -8,10 +8,10 @@ import (
 	"math/cmplx"
 )
 
-// Iterations at which we are "converged"
+// Iterations after which we are "converged"
 const MaxIterations = 10000
 
-// Color the image using iterations to diverge
+// Color the image using iterations to divergence
 type Colorize func(iterations int) color.Color
 
 // Generate Mandelbrot set
